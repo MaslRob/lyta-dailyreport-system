@@ -2,15 +2,20 @@
 package com.techacademy.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
@@ -68,5 +73,20 @@ public class Employee {
     // 更新日時
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy="employee", cascade = CascadeType.ALL)
+    private List<Dailyreport> dailyreports;
+
+    /** レコードが削除される前に行なう処理 */
+    @PreRemove
+    @Transactional
+    private void preRemove() {
+        // 認証エンティティからuserを切り離す
+        if (dailyreports!=null) {
+            for (Dailyreport report : dailyreports) {
+                report.setEmployee(null);
+            }
+        }
+    }
 
 }
